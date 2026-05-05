@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # 1. Container chạy SQL Server 2022
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_server_local
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Password123 # Đây là mật khẩu tài khoản 'sa' của bạn
+    ports:
+      - "1433:1433" # Thông cổng kết nối từ máy Windows vào Linux
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  # 2. Container chạy SMTP Ảo (MailHog) để sau này test gửi Mail
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog_local
+    ports:
+      - "1025:1025" # Cổng để code C# kết nối gửi email sang
+      - "8025:8025" # Cổng để bạn mở trình duyệt xem giao diện hòm thư
+
+volumes:
+  mssql_data:
