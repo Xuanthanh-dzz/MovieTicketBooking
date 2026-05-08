@@ -1,24 +1,43 @@
-
 services:
-  # 1. Container chạy SQL Server 2022
+  # 1. Container chạy SQL Server 2022 (bạn đã có)
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sql_server_local
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=YourStrong@Password123 # Đây là mật khẩu tài khoản 'sa' của bạn
+      - MSSQL_SA_PASSWORD=YourStrong@Password123
     ports:
-      - "1433:1433" # Thông cổng kết nối từ máy Windows vào Linux
+      - "1433:1433"
     volumes:
       - mssql_data:/var/opt/mssql
 
-  # 2. Container chạy SMTP Ảo (MailHog) để sau này test gửi Mail
+  # 2. Container chạy SMTP Ảo (MailHog) – bạn đã có
   mailhog:
     image: mailhog/mailhog:latest
     container_name: mailhog_local
     ports:
-      - "1025:1025" # Cổng để code C# kết nối gửi email sang
-      - "8025:8025" # Cổng để bạn mở trình duyệt xem giao diện hòm thư
+      - "1025:1025"
+      - "8025:8025"
+
+  # 3. Container MinIO (Object Storage) – THÊM MỚI
+  minio:
+    image: minio/minio:latest
+    container_name: minio_local
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"   # API cổng cho S3 compatible
+      - "9001:9001"   # Web UI
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
 volumes:
   mssql_data:
+  minio_data:   # THÊM volume mới cho MinIO
